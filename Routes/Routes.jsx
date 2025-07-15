@@ -4,8 +4,12 @@ import Home from "../src/components/Home/Home";
 import Members from "../src/components/Members/Members";
 import ParticipationsPage from "../src/components/Participations/ParticipationsPage";
 import ProfilePage from "../src/components/Profile/ProfilePage";
+import LandingPage from "../src/components/LandingPage/LandingPage";
 
 const routes = createBrowserRouter([
+    {
+        path:"/",element:<LandingPage/>
+    },
     {   
         path:"/admin",element:<NavBar/>,children:[
             {index:true,element: <Navigate to="home" replace />},
