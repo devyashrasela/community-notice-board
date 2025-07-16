@@ -11,7 +11,7 @@ const routes = createBrowserRouter([
         path:"/",element:<LandingPage/>
     },
     {   
-        path:"/admin",element:<NavBar/>,children:[
+        path:"/:role",element:<NavBar/>,children:[
             {index:true,element: <Navigate to="home" replace />},
             {path:"home",element:<Home/>},
             {path:"members",element:<Members/>},

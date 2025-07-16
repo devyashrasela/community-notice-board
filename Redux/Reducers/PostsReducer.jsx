@@ -1,176 +1,55 @@
-import { createSlice } from "@reduxjs/toolkit";
+// Redux/Reducers/PostsReducer.js
+import { collection, onSnapshot, addDoc, deleteDoc, doc } from "firebase/firestore";
+import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
+import { db } from "../../src/Services/firebase.config";
 
-const initialState = [
-  {
-    id: 1,
-    type: "notice",
-    userName: "Admin",
-    userImage: "https://ui-avatars.com/api/?name=Admin",
-    date: "2025-07-15T09:30:00",
-    tags: ["Notice"],
-    image: "https://via.placeholder.com/400x150?text=Notice+1",
-    title: "Electricity Maintenance",
-    description: "Electricity will be unavailable from 1pm to 3pm today for maintenance.",
-    saved: false,
-  },
-  {
-    id: 2,
-    type: "post",
-    userName: "Ravi",
-    userImage: "https://ui-avatars.com/api/?name=Ravi",
-    date: "2025-07-16T10:30:00",
-    tags: ["Discussion"],
-    image: "https://via.placeholder.com/400x150?text=Post+1",
-    title: "Cultural Festival Feedback",
-    content: "The cultural festival was amazing. Thanks to all volunteers!",
-    liked: true,
-    saved: false,
-    onLike: () => alert("Like"),
-    onComment: () => alert("Comment"),
-  },
-  {
-    id: 3,
-    type: "event",
-    userName: "Priya",
-    userImage: "https://ui-avatars.com/api/?name=Priya",
-    date: "2025-07-17T08:45:00",
-    tags: ["Meetup"],
-    image: "https://via.placeholder.com/400x150?text=Event+1",
-    title: "Yoga Morning",
-    description: "Join us for a fresh start with yoga in the community park.",
-    eventDate: "2025-07-19T07:00:00",
-    location: "Community Park",
-    organizer: "Wellness Team",
-    liked: false,
-    saved: true,
-    onLike: () => alert("Like"),
-    onComment: () => alert("Comment"),
-    onSave: () => alert("Save"),
-    onRSVP: () => alert("RSVP"),
-  },
-  {
-    id: 4,
-    type: "notice",
-    userName: "Secretary",
-    userImage: "https://ui-avatars.com/api/?name=Secretary",
-    date: "2025-07-14T15:00:00",
-    tags: ["Urgent", "Notice"],
-    image: "https://via.placeholder.com/400x150?text=Notice+2",
-    title: "Water Supply Disruption",
-    description: "There will be no water supply from 8am to 11am tomorrow.",
-    saved: false,
-  },
-  {
-    id: 5,
-    type: "post",
-    userName: "Amit",
-    userImage: "https://ui-avatars.com/api/?name=Amit",
-    date: "2025-07-17T13:30:00",
-    tags: ["Suggestion"],
-    image: "https://via.placeholder.com/400x150?text=Post+2",
-    title: "More Waste Bins Needed",
-    content: "Could we install more dustbins in the central park area?",
-    liked: false,
-    saved: false,
-    onLike: () => alert("Like"),
-    onComment: () => alert("Comment"),
-  },
-  {
-    id: 6,
-    type: "event",
-    userName: "Sunita",
-    userImage: "https://ui-avatars.com/api/?name=Sunita",
-    date: "2025-07-13T10:00:00",
-    tags: ["Cultural", "Event"],
-    image: "https://via.placeholder.com/400x150?text=Event+2",
-    title: "Independence Day Parade",
-    description: "Celebrate Independence Day with a parade and flag hoisting.",
-    eventDate: "2025-08-15T08:00:00",
-    location: "Main Road",
-    organizer: "Cultural Committee",
-    liked: false,
-    saved: false,
-    onLike: () => alert("Like"),
-    onComment: () => alert("Comment"),
-    onSave: () => alert("Save"),
-    onRSVP: () => alert("RSVP"),
-  },
-  {
-    id: 7,
-    type: "notice",
-    userName: "Vikas",
-    userImage: "https://ui-avatars.com/api/?name=Vikas",
-    date: "2025-07-12T11:15:00",
-    tags: ["Maintenance"],
-    image: "https://via.placeholder.com/400x150?text=Notice+3",
-    title: "Lift Repair",
-    description: "Block B lift will be under repair from 10am to 5pm.",
-    saved: true,
-  },
-  {
-    id: 8,
-    type: "post",
-    userName: "Neha",
-    userImage: "https://ui-avatars.com/api/?name=Neha",
-    date: "2025-07-13T17:45:00",
-    tags: ["Announcement"],
-    image: "https://via.placeholder.com/400x150?text=Post+3",
-    title: "Lost Watch",
-    content: "Lost my black watch near the parking lot. Please contact if found.",
-    liked: true,
-    saved: false,
-    onLike: () => alert("Like"),
-    onComment: () => alert("Comment"),
-  },
-  {
-    id: 9,
-    type: "event",
-    userName: "Sachin",
-    userImage: "https://ui-avatars.com/api/?name=Sachin",
-    date: "2025-07-16T18:00:00",
-    tags: ["Sports", "Event"],
-    image: "https://via.placeholder.com/400x150?text=Event+3",
-    title: "Cricket Match",
-    description: "Come and cheer at the community cricket match!",
-    eventDate: "2025-07-20T17:00:00",
-    location: "Community Ground",
-    organizer: "Sports Club",
-    liked: false,
-    saved: true,
-    onLike: () => alert("Like"),
-    onComment: () => alert("Comment"),
-    onSave: () => alert("Save"),
-    onRSVP: () => alert("RSVP"),
-  },
-  {
-    id: 10,
-    type: "notice",
-    userName: "Manisha",
-    userImage: "https://ui-avatars.com/api/?name=Manisha",
-    date: "2025-07-11T13:30:00",
-    tags: ["General", "Notice"],
-    image: "https://via.placeholder.com/400x150?text=Notice+4",
-    title: "Parking Slot Allotment",
-    description: "Parking slots will be reassigned next week. Check your email.",
-    saved: false,
-  },
-];
+// Listen to posts collection
+export const listenToPosts = createAsyncThunk(
+  "posts/listen",
+  async (_, { dispatch }) => {
+    onSnapshot(collection(db, "posts"), snap => {
+      const posts = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      // Sort by date (newest first)
+      posts.sort((a, b) => new Date(b.date) - new Date(a.date));
+      dispatch(postsSlice.actions.set(posts));
+    });
+  }
+);
 
+// Add new post to Firestore
+export const addPost = createAsyncThunk(
+  "posts/add",
+  async (postData) => {
+    await addDoc(collection(db, "posts"), postData);
+  }
+);
 
-const PostsSlice = createSlice({
-    name:"Posts",
-    initialState,
-    reducers:{
-        add : (state,action)=>{
-            state.push(action.payload);
-            return state;
-        },
-        delete:(state,action)=>{
-            return state.filter((post)=>post.id!=action.payload)
-        }
+// Delete post from Firestore
+export const deletePost = createAsyncThunk(
+  "posts/delete",
+  async (postId) => {
+    await deleteDoc(doc(db, "posts", postId));
+  }
+);
+
+const postsSlice = createSlice({
+  name: "Posts",
+  initialState: [],
+  reducers: {
+    set: (state, action) => {
+      // Sort posts by date (newest first) when setting state
+      return action.payload.sort((a, b) => new Date(b.date) - new Date(a.date));
+    },
+    add: (state, action) => {
+      // Add new post to the beginning of the array
+      return [action.payload, ...state];
+    },
+    delete: (state, action) => {
+      return state.filter(post => post.id !== action.payload);
     }
-})
+  }
+});
 
-export const PostsReducer = PostsSlice.reducer;
-export const PostsActions = PostsSlice.actions;
-export const PostsSelector = (state)=>state.Posts;
+export const PostsReducer = postsSlice.reducer;
+export const PostsActions = postsSlice.actions;
+export const PostsSelector = (state) => state.Posts;

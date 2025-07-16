@@ -2,10 +2,12 @@ import { useState, useRef, useEffect } from "react";
 import { HiOutlineDotsVertical } from "react-icons/hi";
 
 export default function MemberCard({
-  profileImage = "https://ui-avatars.com/api/?name=Member",
+  id,
   name = "Member Name",
   email = "member@example.com",
-  type = "User", // or "Admin"
+  role = "User", // or "Admin"
+  totalPosts = 0,
+  totalParticipations = 0,
   onView,
   onEdit,
   onRemove,
@@ -25,9 +27,12 @@ export default function MemberCard({
     return () => document.removeEventListener("mousedown", handleClick);
   }, [menuOpen]);
 
-  // Type to color mapping
+  // Generate profile image URL based on name
+  const profileImage = `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}`;
+
+  // Role to color mapping
   const badgeStyle =
-    type.toLowerCase() === "admin"
+    role.toLowerCase() === "admin"
       ? "bg-red-100 text-red-600 border-red-300"
       : "bg-blue-100 text-blue-600 border-blue-300";
 
@@ -46,8 +51,17 @@ export default function MemberCard({
         <span
           className={`inline-block text-xs font-medium capitalize px-2 py-1 mt-1 rounded-lg border ${badgeStyle}`}
         >
-          {type}
+          {role}
         </span>
+        {/* Stats */}
+        <div className="flex gap-4 mt-2">
+          <div className="text-xs text-gray-600">
+            <span className="font-semibold text-blue-600">{totalPosts}</span> Posts
+          </div>
+          <div className="text-xs text-gray-600">
+            <span className="font-semibold text-green-600">{totalParticipations}</span> Participations
+          </div>
+        </div>
       </div>
       {/* Options Button */}
       <div className="relative" ref={menuRef}>
@@ -64,7 +78,7 @@ export default function MemberCard({
               className="w-full text-left px-4 py-2 hover:bg-blue-50 text-blue-600"
               onClick={() => {
                 setMenuOpen(false);
-                onView && onView();
+                onView && onView(id);
               }}
             >
               View
@@ -73,7 +87,7 @@ export default function MemberCard({
               className="w-full text-left px-4 py-2 hover:bg-green-50 text-green-700"
               onClick={() => {
                 setMenuOpen(false);
-                onEdit && onEdit();
+                onEdit && onEdit(id);
               }}
             >
               Edit
@@ -82,7 +96,7 @@ export default function MemberCard({
               className="w-full text-left px-4 py-2 hover:bg-red-50 text-red-600"
               onClick={() => {
                 setMenuOpen(false);
-                onRemove && onRemove();
+                onRemove && onRemove(id);
               }}
             >
               Remove

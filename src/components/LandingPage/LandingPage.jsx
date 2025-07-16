@@ -1,9 +1,51 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
+import { useDispatch, useSelector } from 'react-redux';
+import { UserAction } from '../../../Redux/Reducers/UserRedicer';
+import { UserListSelector } from '../../../Redux/Reducers/UserListReducer';
+import { initializeData } from '../../scripts/initializeData';
 
 function LandingPage(props) {
+    const dispatch = useDispatch();
+    const userList = useSelector(UserListSelector);
+    const [initializing, setInitializing] = useState(false);
+
+    const handleRoleClick = (userData) => {
+        const userPayload = {
+            id: userData.id,
+            type: userData.role,
+            name: userData.name,
+            email: userData.email,
+            totalPosts: userData.totalPosts,
+            totalParticipations: userData.totalParticipations
+        };
+        
+        dispatch(UserAction.set(userPayload));
+    };
+
+    const handleInitializeData = async () => {
+        setInitializing(true);
+        try {
+            await initializeData();
+            alert('Data initialized successfully!');
+        } catch (error) {
+            alert('Failed to initialize data: ' + error.message);
+        } finally {
+            setInitializing(false);
+        }
+    };
+
     return (
         <div className='h-screen w-screen flex items-center justify-center bg-gradient-to-br from-slate-50 via-gray-50 to-blue-50'>
+            {/* Initialize Data Button - Remove in production */}
+            <button
+                onClick={handleInitializeData}
+                disabled={initializing}
+                className="fixed top-4 right-4 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg shadow-lg disabled:bg-gray-400 z-50"
+            >
+                {initializing ? 'Initializing...' : 'Initialize Data'}
+            </button>
+
             {/* Main Container */}
             <div className="bg-white rounded-2xl shadow-xl p-16 max-w-4xl w-full mx-8 border border-gray-100 relative overflow-hidden">
                 
@@ -31,20 +73,28 @@ function LandingPage(props) {
                         notices, and important updates. Please select your designated role to continue.
                     </p>
                     
+                    {/* Show message if no users */}
+                    {userList.length === 0 && (
+                        <div className="text-center mb-8 p-4 bg-yellow-100 border border-yellow-400 rounded-lg">
+                            <p className="text-yellow-800">No users found. Please click "Initialize Data" to add sample users.</p>
+                        </div>
+                    )}
+                    
                     {/* Buttons Container */}
                     <div className="grid grid-cols-2 md:grid-cols-5 gap-6 mb-12">
-                        {['User 1', 'User 2', 'User 3', 'User 4', 'Admin'].map((role, index) => {
-                            // Generate route path based on role
-                            const routePath = role === 'Admin' ? '/admin' : `/user${index + 1}`;
+                        {userList.map((userData) => {
+                            // Generate variable route path based on role
+                            const routePath = userData.role === 'Admin' ? '/admin' : `/user`;
                             
                             return (
                                 <Link
-                                    key={role}
+                                    key={userData.id}
                                     to={routePath}
+                                    onClick={() => handleRoleClick(userData)}
                                     className={`
                                         group relative h-28 rounded-xl font-medium text-base transition-all duration-300 
                                         transform hover:scale-105 active:scale-95 overflow-hidden block
-                                        ${role === 'Admin' 
+                                        ${userData.role === 'Admin' 
                                             ? 'bg-gradient-to-br from-slate-800 to-gray-900 text-white shadow-lg hover:shadow-xl' 
                                             : 'bg-gradient-to-br from-blue-600 to-indigo-700 text-white shadow-lg hover:shadow-xl'
                                         }
@@ -60,7 +110,7 @@ function LandingPage(props) {
                                                 <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd"></path>
                                             </svg>
                                         </div>
-                                        <span className="text-sm font-medium">{role}</span>
+                                        <span className="text-sm font-medium">{userData.name}</span>
                                     </div>
                                 </Link>
                             );

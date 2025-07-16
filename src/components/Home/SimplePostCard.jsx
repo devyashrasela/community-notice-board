@@ -1,4 +1,6 @@
 import { useState, useRef, useEffect } from "react";
+import { useSelector } from "react-redux";
+import { UserSelector } from "../../../Redux/Reducers/UserRedicer";
 import { HiOutlineDotsVertical } from "react-icons/hi";
 import {
   AiOutlineDelete, AiOutlineFlag, AiOutlineSave,
@@ -29,6 +31,9 @@ export default function PostCard({
 }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef();
+  
+  // Get user data from Redux store
+  const user = useSelector(UserSelector);
 
   // Close on outside click
   useEffect(() => {
@@ -111,12 +116,15 @@ export default function PostCard({
           </button>
           {menuOpen && (
             <div className="absolute right-0 mt-2 w-28 bg-white border rounded-lg shadow-md z-10 text-sm">
-              <button
-                className="w-full flex items-center gap-2 px-4 py-2 hover:bg-red-50 text-red-600"
-                onClick={onDelete}
-              >
-                <AiOutlineDelete /> Delete
-              </button>
+              {/* Delete button - only show for Admin */}
+              {user?.type === "Admin" && (
+                <button
+                  className="w-full flex items-center gap-2 px-4 py-2 hover:bg-red-50 text-red-600"
+                  onClick={onDelete}
+                >
+                  <AiOutlineDelete /> Delete
+                </button>
+              )}
               <button
                 className="w-full flex items-center gap-2 px-4 py-2 hover:bg-yellow-50 text-yellow-600"
                 onClick={onReport}
